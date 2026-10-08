@@ -1,0 +1,12 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Local Database
+*.db
+instance/
+
+# Uploaded files folders
+uploads/
+static/uploads/*
+!static/uploads/.gitkeep
