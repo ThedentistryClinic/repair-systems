@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>แจ้งซ่อมอุปกรณ์ - ระบบแจ้งซ่อม</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Prompt', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+        <h1 class="font-bold text-lg text-blue-600">🏢 ระบบแจ้งซ่อม (สาขา: {{ session['branch'] }})</h1>
+        <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-600">ผู้ใช้งาน: <strong class="text-gray-800">{{ session['username'] }}</strong> ({{ session['role'] | upper }})</span>
+            <a href="/logout" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-100 transition">ออกจากระบบ</a>
+        </div>
+    </nav>
+
+    <div class="max-w-2xl mx-auto mt-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h2 class="text-xl font-bold text-gray-800 mb-6 border-b pb-3">📝 ฟอร์มแจ้งซ่อมอุปกรณ์</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="mb-6 p-4 rounded-xl text-sm bg-green-50 text-green-700 border border-green-200">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <!-- เลือกหมวดหมู่หลัก -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทการแจ้งซ่อม *</label>
+                <select name="repair_type" id="repair_type" onchange="toggleFormType()" required class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">-- เลือกประเภทการแจ้งซ่อม --</option>
+                    <option value="it">ซ่อมระบบ IT</option>
+                    <option value="medical">อุปกรณ์การแพทย์ (X-Ray / iTero / อื่นๆ)</option>
+                </select>
+            </div>
+
+            <!-- ฟอร์มย่อย: ระบบ IT -->
+            <div id="it_section" class="space-y-4 hidden p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                <h3 class="font-semibold text-blue-800 text-sm">รายละเอียดระบบ IT</h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่ IT</label>
+                    <select name="it_category" class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white">
+                        <option value="internet">Internet</option>
+                        <option value="ipad">iPad</option>
+                        <option value="computer">Computer</option>
+                        <option value="printer">Printer</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ฟอร์มย่อย: อุปกรณ์การแพทย์ -->
+            <div id="medical_section" class="space-y-4 hidden p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                <h3 class="font-semibold text-indigo-800 text-sm">รายละเอียดอุปกรณ์การแพทย์</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อเครื่องมือ</label>
+                        <input type="text" name="med_name" placeholder="เช่น X-Ray, iTero" class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ยี่ห้อ / รุ่น</label>
+                        <input type="text" name="med_brand_model" class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">สาเหตุที่ชำรุด</label>
+                    <select name="med_cause" id="med_cause" onchange="toggleOtherCause()" class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white">
+                        <option value="อายุการใช้งาน">อายุการใช้งาน</option>
+                        <option value="การใช้งานต่อเนื่องเวลานาน">การใช้งานต่อเนื่องเวลานาน</option>
+                        <option value="เครื่องมือเสื่อมสภาพ">เครื่องมือเสื่อมสภาพ</option>
+                        <option value="ตกกระแทก">ตกกระแทก</option>
+                        <option value="การทำความสะอาดไม่ถูกวิธี">การทำความสะอาดไม่ถูกวิธี</option>
+                        <option value="การใช้งานผิดประเภท">การใช้งานผิดประเภท</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+                <div id="other_cause_div" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">โปรดระบุสาเหตุอื่นๆ</label>
+                    <input type="text" name="med_cause_other" class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white">
+                </div>
+            </div>
+
+            <!-- ข้อมูลทั่วไปเพิ่มเติม -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">สถานที่ใช้งาน / จุดติดตั้ง *</label>
+                    <input type="text" name="location" required placeholder="เช่น ห้องตรวจ 1, เคาน์เตอร์ต้อนรับ" class="w-full px-4 py-2.5 rounded-lg border border-gray-300">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ลักษณะปัญหาที่พบ *</label>
+                    <textarea name="problem_desc" rows="3" required placeholder="อธิบายอาการหรือปัญหาที่พบโดยละเอียด..." class="w-full px-4 py-2.5 rounded-lg border border-gray-300"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">อัปโหลดรูปภาพปัญหา (ถ้ามี)</label>
+                    <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-blue-200">
+                ยืนยันการแจ้งซ่อม
+            </button>
+        </form>
+    </div>
+
+    <script>
+        function toggleFormType() {
+            const val = document.getElementById('repair_type').value;
+            document.getElementById('it_section').classList.toggle('hidden', val !== 'it');
+            document.getElementById('medical_section').classList.toggle('hidden', val !== 'medical');
+        }
+        function toggleOtherCause() {
+            const val = document.getElementById('med_cause').value;
+            document.getElementById('other_cause_div').classList.toggle('hidden', val !== 'อื่นๆ');
+        }
+    </script>
+</body>
+</html>
