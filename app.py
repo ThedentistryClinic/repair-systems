@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -366,5 +366,5 @@ def download_file(doc_id):
 if __name__ == '__main__':
     init_db() # สร้างฐานข้อมูลและ User เริ่มต้นอัตโนมัติ
     print("Intranet System is running on http://127.0.0.1:5000")
->>>>>>> 8084c4a9d32ffc80eae8c58bf2dc2ad797e79c67
+8084c4a9d32ffc80eae8c58bf2dc2ad797e79c67
     app.run(debug=True, port=5000)
